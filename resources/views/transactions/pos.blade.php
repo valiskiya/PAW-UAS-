@@ -21,7 +21,7 @@
             
             <select name="category" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Semua Kategori</option>
-                @foreach($categories as $cat)
+                @foreach(($categories ?? $products->pluck('category')->unique()) as $cat)
                     <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                 @endforeach
             </select>
@@ -96,7 +96,9 @@
     
     <!-- Pagination -->
     <div class="mt-4">
-        {{ $products->links() }}
+        @if(method_exists($products, 'links'))
+            {{ $products->links() }}
+        @endif
     </div>
 </div>
 @endsection

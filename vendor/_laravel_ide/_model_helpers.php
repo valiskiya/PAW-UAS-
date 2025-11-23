@@ -5,8 +5,28 @@ namespace App\Models {
     /**
      * App\Models\Attendance
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $notes
+     * @property datetime:H:i|null $check_out
+     * @property datetime:H:i|null $check_in
+     * @property string $status
+     * @property \Illuminate\Support\Carbon $attendance_date
+     * @property int $shift_id
+     * @property int $employee_id
+     * @property int $id
      * @property-read \App\Models\Employee $employee
      * @property-read \App\Models\Shift $shift
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereEmployeeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereShiftId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereAttendanceDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereCheckIn($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereCheckOut($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Attendance>|Attendance query()
@@ -310,8 +330,34 @@ namespace App\Models {
     /**
      * App\Models\Customer
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $status
+     * @property boolean $free_shipping
+     * @property decimal:2 $discount_percentage
+     * @property \Illuminate\Support\Carbon|null $member_since
+     * @property string|null $address
+     * @property string|null $email
+     * @property string|null $phone
+     * @property string $type
+     * @property string $name
+     * @property string $code
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Transaction> $transactions
      * @property-read int|null $transactions_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereEmail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereMemberSince($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereDiscountPercentage($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereFreeShipping($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Customer>|Customer query()
@@ -615,11 +661,37 @@ namespace App\Models {
     /**
      * App\Models\Employee
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $status
+     * @property decimal:2 $base_salary_per_shift
+     * @property integer $salary_grade
+     * @property string $position
+     * @property \Illuminate\Support\Carbon $hire_date
+     * @property string $address
+     * @property string $phone
+     * @property string $full_name
+     * @property string $employee_code
+     * @property int|null $user_id
+     * @property int $id
      * @property-read \App\Models\User $user
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Attendance> $attendances
      * @property-read int|null $attendances_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SalaryPayment> $salaryPayments
      * @property-read int|null $salaryPayments_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereUserId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereEmployeeCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereFullName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereHireDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee wherePosition($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereSalaryGrade($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereBaseSalaryPerShift($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Employee>|Employee query()
@@ -923,6 +995,25 @@ namespace App\Models {
     /**
      * App\Models\Product
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $status
+     * @property decimal:2 $selling_price_wholesale_high
+     * @property decimal:2 $selling_price_wholesale_low
+     * @property decimal:2 $selling_price_member
+     * @property decimal:2 $selling_price_retail
+     * @property decimal:2 $purchase_price
+     * @property integer $min_stock
+     * @property integer $stock_small
+     * @property integer $stock_large
+     * @property integer $conversion_factor
+     * @property string $small_unit
+     * @property string $large_unit
+     * @property string|null $category
+     * @property string|null $description
+     * @property string $name
+     * @property string $code
+     * @property int $id
      * @property-read mixed $total_stock_small
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TransactionDetail> $transactionDetails
      * @property-read int|null $transactionDetails_count
@@ -930,6 +1021,25 @@ namespace App\Models {
      * @property-read int|null $stockCards_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PurchaseOrder> $purchaseOrders
      * @property-read int|null $purchaseOrders_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereCategory($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereLargeUnit($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereSmallUnit($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereConversionFactor($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereStockLarge($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereStockSmall($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereMinStock($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product wherePurchasePrice($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereSellingPriceRetail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereSellingPriceMember($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereSellingPriceWholesaleLow($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereSellingPriceWholesaleHigh($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Product>|Product query()
@@ -1233,9 +1343,39 @@ namespace App\Models {
     /**
      * App\Models\PurchaseOrder
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property int|null $received_by
+     * @property string|null $notes
+     * @property string $status
+     * @property decimal:2 $total_price
+     * @property decimal:2 $unit_price
+     * @property integer $quantity_small
+     * @property integer $quantity_large
+     * @property \Illuminate\Support\Carbon|null $received_date
+     * @property \Illuminate\Support\Carbon $order_date
+     * @property int $product_id
+     * @property int $supplier_id
+     * @property string $po_number
+     * @property int $id
      * @property-read \App\Models\Supplier $supplier
      * @property-read \App\Models\Product $product
      * @property-read \App\Models\User $receivedBy
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder wherePoNumber($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereSupplierId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereProductId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereOrderDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereReceivedDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereQuantityLarge($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereQuantitySmall($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereUnitPrice($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereTotalPrice($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereReceivedBy($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<PurchaseOrder>|PurchaseOrder query()
@@ -1856,8 +1996,44 @@ namespace App\Models {
     /**
      * App\Models\SalaryPayment
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property int|null $paid_by
+     * @property string|null $notes
+     * @property string $status
+     * @property \Illuminate\Support\Carbon|null $payment_date
+     * @property decimal:2 $total_salary
+     * @property decimal:2 $base_salary_per_shift
+     * @property integer $salary_grade
+     * @property integer $total_alpha
+     * @property integer $total_sick
+     * @property integer $total_leave
+     * @property integer $total_present
+     * @property integer $total_shifts
+     * @property integer $year
+     * @property integer $month
+     * @property int $employee_id
+     * @property int $id
      * @property-read \App\Models\Employee $employee
      * @property-read \App\Models\User $paidBy
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereEmployeeId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereMonth($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereYear($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalShifts($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalPresent($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalLeave($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalSick($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalAlpha($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereSalaryGrade($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereBaseSalaryPerShift($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereTotalSalary($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment wherePaymentDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment wherePaidBy($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<SalaryPayment>|SalaryPayment query()
@@ -2161,8 +2337,22 @@ namespace App\Models {
     /**
      * App\Models\Shift
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $description
+     * @property datetime:H:i $end_time
+     * @property datetime:H:i $start_time
+     * @property string $name
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Attendance> $attendances
      * @property-read int|null $attendances_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereStartTime($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereEndTime($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereDescription($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Shift>|Shift query()
@@ -2466,8 +2656,40 @@ namespace App\Models {
     /**
      * App\Models\StockCard
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property int|null $user_id
+     * @property string|null $notes
+     * @property integer $quantity_after_small
+     * @property integer $quantity_after_large
+     * @property integer $quantity_change_small
+     * @property integer $quantity_change_large
+     * @property integer $quantity_before_small
+     * @property integer $quantity_before_large
+     * @property int|null $reference_id
+     * @property string|null $reference_type
+     * @property string $type
+     * @property \Illuminate\Support\Carbon $transaction_date
+     * @property int $product_id
+     * @property int $id
      * @property-read \App\Models\Product $product
      * @property-read \App\Models\User $user
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereProductId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereTransactionDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereReferenceType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereReferenceId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityBeforeLarge($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityBeforeSmall($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityChangeLarge($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityChangeSmall($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityAfterLarge($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereQuantityAfterSmall($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereUserId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<StockCard>|StockCard query()
@@ -2771,8 +2993,28 @@ namespace App\Models {
     /**
      * App\Models\Supplier
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string $status
+     * @property string $address
+     * @property string|null $email
+     * @property string $phone
+     * @property string|null $contact_person
+     * @property string $name
+     * @property string $code
+     * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PurchaseOrder> $purchaseOrders
      * @property-read int|null $purchaseOrders_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereContactPerson($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereEmail($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Supplier>|Supplier query()
@@ -3076,10 +3318,48 @@ namespace App\Models {
     /**
      * App\Models\Transaction
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $notes
+     * @property string $status
+     * @property string $payment_method
+     * @property decimal:2 $change_amount
+     * @property decimal:2 $payment_amount
+     * @property decimal:2 $total
+     * @property decimal:2 $shipping_cost
+     * @property boolean $free_shipping
+     * @property decimal:2 $discount_percentage
+     * @property decimal:2 $discount_amount
+     * @property decimal:2 $subtotal
+     * @property datetime:H:i $transaction_time
+     * @property \Illuminate\Support\Carbon $transaction_date
+     * @property int $cashier_id
+     * @property int|null $customer_id
+     * @property string $transaction_code
+     * @property int $id
      * @property-read \App\Models\Customer $customer
      * @property-read \App\Models\User $cashier
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TransactionDetail> $details
      * @property-read int|null $details_count
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereTransactionCode($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereCustomerId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereCashierId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereTransactionDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereTransactionTime($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereSubtotal($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereDiscountAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereDiscountPercentage($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereFreeShipping($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereShippingCost($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereTotal($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction wherePaymentAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereChangeAmount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction wherePaymentMethod($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereStatus($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Transaction>|Transaction query()
@@ -3383,8 +3663,30 @@ namespace App\Models {
     /**
      * App\Models\TransactionDetail
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property decimal:2 $total
+     * @property decimal:2 $discount
+     * @property decimal:2 $subtotal
+     * @property decimal:2 $unit_price
+     * @property string $unit
+     * @property integer $quantity
+     * @property int $product_id
+     * @property int $transaction_id
+     * @property int $id
      * @property-read \App\Models\Transaction $transaction
      * @property-read \App\Models\Product $product
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereTransactionId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereProductId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereQuantity($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereUnit($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereUnitPrice($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereSubtotal($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereDiscount($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereTotal($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<TransactionDetail>|TransactionDetail query()
@@ -3691,10 +3993,14 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $remember_token
+     * @property string $status
+     * @property string|null $address
+     * @property string|null $phone
+     * @property string $full_name
      * @property string $password
-     * @property \Illuminate\Support\Carbon|null $email_verified_at
      * @property string $email
-     * @property string $name
+     * @property string $username
+     * @property int $role_id
      * @property int $id
      * @property-read \App\Models\Role $role
      * @property-read \App\Models\Employee $employee
@@ -3703,10 +4009,14 @@ namespace App\Models {
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
      * @property-read int|null $notifications_count
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereRoleId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereUsername($value)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereEmail($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereEmailVerifiedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User wherePassword($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereFullName($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereAddress($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereStatus($value)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereRememberToken($value)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User whereUpdatedAt($value)
