@@ -11,14 +11,17 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
+        // Kalau sudah login langsung ke dashboard (nanti di-redirect sesuai role)
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
+        // 1. Validasi input
         $request->validate([
             'username' => 'required',
             'password' => 'required',
@@ -27,17 +30,28 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi',
         ]);
 
-        $credentials = $request->only('username', 'password');
+        // 2. Credentials untuk Auth::attempt
+        //    + hanya user dengan status "active" yang bisa login
+        $credentials = [
+            'username' => $request->username,
+            'password' => $request->password,
+            'status'   => 'active',
+        ];
 
+        // 3. Coba login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
-            // Redirect berdasarkan role
+
             $user = Auth::user();
-            
-            return redirect()->intended('dashboard')->with('success', 'Login berhasil! Selamat datang ' . $user->full_name);
+
+            // Arahkan ke route 'dashboard'
+            // DashboardController@index akan redirect ke dashboard role masing-masing
+            return redirect()
+                ->route('dashboard')
+                ->with('success', 'Login berhasil! Selamat datang ' . $user->full_name);
         }
 
+        // 4. Kalau gagal
         return back()->withErrors([
             'username' => 'Username atau password salah.',
         ])->withInput($request->only('username'));
@@ -46,9 +60,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect()->route('login')->with('success', 'Logout berhasil');
     }
 
@@ -63,16 +78,16 @@ class AuthController extends Controller
 
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
+            'email'     => 'required|email|unique:users,email,' . $user->id,
+            'phone'     => 'nullable|string|max:20',
+            'address'   => 'nullable|string',
         ]);
 
         $user->update([
             'full_name' => $request->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
+            'email'     => $request->email,
+            'phone'     => $request->phone,
+            'address'   => $request->address,
         ]);
 
         return back()->with('success', 'Profil berhasil diperbarui');
@@ -82,17 +97,17 @@ class AuthController extends Controller
     {
         $request->validate([
             'current_password' => 'required',
-            'new_password' => 'required|min:6|confirmed',
+            'new_password'     => 'required|min:6|confirmed',
         ], [
             'current_password.required' => 'Password lama wajib diisi',
-            'new_password.required' => 'Password baru wajib diisi',
-            'new_password.min' => 'Password baru minimal 6 karakter',
-            'new_password.confirmed' => 'Konfirmasi password tidak cocok',
+            'new_password.required'     => 'Password baru wajib diisi',
+            'new_password.min'          => 'Password baru minimal 6 karakter',
+            'new_password.confirmed'    => 'Konfirmasi password tidak cocok',
         ]);
 
         $user = Auth::user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Password lama tidak sesuai']);
         }
 

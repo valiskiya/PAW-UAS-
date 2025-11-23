@@ -13,68 +13,88 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    /**
+     * /dashboard
+     * Redirect ke dashboard sesuai role user.
+     */
     public function index()
-    {
-        $user = auth()->user();
-        $role = $user->role->name;
-        
-        // Data berbeda berdasarkan role
-        if ($role === 'direktur') {
-            return $this->direkturDashboard();
-        } elseif ($role === 'manajer_unit') {
-            return $this->manajerDashboard();
-        } elseif ($role === 'kasir') {
-            return $this->kasirDashboard();
-        } elseif ($role === 'logistik') {
-            return $this->logistikDashboard();
-        } elseif ($role === 'admin_ti') {
-            return $this->adminDashboard();
-        }
-        
-        return view('dashboard.default');
+{
+    $user = auth()->user();
+
+    if (! $user || ! $user->role) {
+        abort(403, 'Role pengguna tidak ditemukan');
     }
-    
-    private function direkturDashboard()
+
+    $role = $user->role->name;
+
+    switch ($role) {
+        case 'direktur':
+            return redirect()->route('direktur.dashboard');
+
+        case 'manajer_unit':
+            return redirect()->route('manajer.dashboard');
+
+        case 'kasir':
+            return redirect()->route('kasir.dashboard');
+
+        case 'logistik':
+            return redirect()->route('logistik.dashboard');
+
+        case 'admin':
+            return redirect()->route('admin.dashboard');
+
+        default:
+            // Daripada cari view yang tidak ada, lebih aman abort 403
+            abort(403, 'Role "' . $role . '" tidak dikenali. Silakan hubungi Admin TI.');
+    }
+}
+
+
+    /**
+     * Dashboard Direktur
+     */
+    public function direkturDashboard()
     {
-        $today = Carbon::today();
+        $today     = Carbon::today();
         $thisMonth = Carbon::now()->month;
-        $thisYear = Carbon::now()->year;
-        
+        $thisYear  = Carbon::now()->year;
+
         // KPI Data
         $totalRevenueToday = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->sum('total');
-            
+
         $totalRevenueMonth = Transaction::whereMonth('transaction_date', $thisMonth)
             ->whereYear('transaction_date', $thisYear)
             ->where('status', 'completed')
             ->sum('total');
-            
+
         $totalTransactionsToday = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->count();
-            
+
         $totalTransactionsMonth = Transaction::whereMonth('transaction_date', $thisMonth)
             ->whereYear('transaction_date', $thisYear)
             ->where('status', 'completed')
             ->count();
-        
+
         // Grafik penjualan 7 hari terakhir
         $salesChart = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
+            $date  = Carbon::today()->subDays($i);
             $sales = Transaction::whereDate('transaction_date', $date)
                 ->where('status', 'completed')
                 ->sum('total');
+
             $salesChart[] = [
-                'date' => $date->format('d M'),
-                'sales' => $sales
+                'date'  => $date->format('d M'),
+                'sales' => $sales,
             ];
         }
-        
-        // Top products
-        $topProducts = Product::withCount(['transactionDetails' => function($query) use ($thisMonth, $thisYear) {
-                $query->whereHas('transaction', function($q) use ($thisMonth, $thisYear) {
+
+        // Top products bulan ini
+        $topProducts = Product::withCount(['transactionDetails' => function ($query) use ($thisMonth, $thisYear) {
+                $query->whereHas('transaction', function ($q) use ($thisMonth, $thisYear) {
                     $q->whereMonth('transaction_date', $thisMonth)
                       ->whereYear('transaction_date', $thisYear)
                       ->where('status', 'completed');
@@ -83,13 +103,13 @@ class DashboardController extends Controller
             ->orderBy('transaction_details_count', 'desc')
             ->take(5)
             ->get();
-        
-        // Low stock products
+
+        // Produk stok menipis
         $lowStockProducts = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
             ->where('status', 'active')
             ->take(10)
             ->get();
-        
+
         return view('dashboard.direktur', compact(
             'totalRevenueToday',
             'totalRevenueMonth',
@@ -100,53 +120,56 @@ class DashboardController extends Controller
             'lowStockProducts'
         ));
     }
-    
-    private function manajerDashboard()
+
+    /**
+     * Dashboard Manajer Unit
+     */
+    public function manajerDashboard()
     {
-        $today = Carbon::today();
+        $today     = Carbon::today();
         $thisMonth = Carbon::now()->month;
-        $thisYear = Carbon::now()->year;
-        
+        $thisYear  = Carbon::now()->year;
+
         // Summary cards
-        $totalProducts = Product::where('status', 'active')->count();
+        $totalProducts  = Product::where('status', 'active')->count();
         $totalCustomers = Customer::where('status', 'active')->count();
         $totalEmployees = Employee::where('status', 'active')->count();
-        
+
         $todayRevenue = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->sum('total');
-            
+
         $todayTransactions = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->count();
-        
+
         // Pending POs
         $pendingPOs = PurchaseOrder::where('status', 'pending')->count();
-        
+
         // Low stock alert
         $lowStockCount = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
             ->where('status', 'active')
             ->count();
-        
+
         // Recent transactions
         $recentTransactions = Transaction::with(['customer', 'cashier'])
             ->latest()
             ->take(5)
             ->get();
-        
+
         // Attendance today
         $todayAttendance = Attendance::with(['employee', 'shift'])
             ->whereDate('attendance_date', $today)
             ->get();
-        
-        // Employees on leave warning (6 izin)
-        $employeesNearLimit = Employee::whereHas('attendances', function($query) use ($thisMonth, $thisYear) {
+
+        // Employees on leave warning (>=6 izin dalam sebulan)
+        $employeesNearLimit = Employee::whereHas('attendances', function ($query) use ($thisMonth, $thisYear) {
                 $query->whereMonth('attendance_date', $thisMonth)
                       ->whereYear('attendance_date', $thisYear)
                       ->where('status', 'izin');
             }, '>=', 6)
             ->get();
-        
+
         return view('dashboard.manajer', compact(
             'totalProducts',
             'totalCustomers',
@@ -160,35 +183,38 @@ class DashboardController extends Controller
             'employeesNearLimit'
         ));
     }
-    
-    private function kasirDashboard()
+
+    /**
+     * Dashboard Kasir
+     */
+    public function kasirDashboard()
     {
         $today = Carbon::today();
-        $user = auth()->user();
-        
+        $user  = auth()->user();
+
         // Transaksi hari ini oleh kasir ini
         $todayTransactions = Transaction::where('cashier_id', $user->id)
             ->whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->count();
-            
+
         $todayRevenue = Transaction::where('cashier_id', $user->id)
             ->whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->sum('total');
-        
+
         // Recent transactions
         $recentTransactions = Transaction::with(['customer'])
             ->where('cashier_id', $user->id)
             ->latest()
             ->take(10)
             ->get();
-        
-        // Quick links count
+
+        // Total member
         $totalMembers = Customer::where('type', '!=', 'non_member')
             ->where('status', 'active')
             ->count();
-        
+
         return view('dashboard.kasir', compact(
             'todayTransactions',
             'todayRevenue',
@@ -196,33 +222,36 @@ class DashboardController extends Controller
             'totalMembers'
         ));
     }
-    
-    private function logistikDashboard()
+
+    /**
+     * Dashboard Logistik
+     */
+    public function logistikDashboard()
     {
         $today = Carbon::today();
-        
+
         // Pending POs
         $pendingPOs = PurchaseOrder::with(['supplier', 'product'])
             ->where('status', 'pending')
             ->get();
-        
+
         // Low stock products
         $lowStockProducts = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
             ->where('status', 'active')
             ->get();
-        
+
         // Today's received POs
         $todayReceived = PurchaseOrder::with(['supplier', 'product'])
             ->whereDate('received_date', $today)
             ->where('status', 'received')
             ->get();
-        
+
         // Stock summary
         $totalProducts = Product::where('status', 'active')->count();
         $criticalStock = Product::whereRaw('(stock_large * conversion_factor + stock_small) < (min_stock * 0.5)')
             ->where('status', 'active')
             ->count();
-        
+
         return view('dashboard.logistik', compact(
             'pendingPOs',
             'lowStockProducts',
@@ -231,23 +260,29 @@ class DashboardController extends Controller
             'criticalStock'
         ));
     }
-    
-    private function adminDashboard()
+
+    /**
+     * Dashboard Admin TI
+     */
+    public function adminDashboard()
     {
         $today = Carbon::today();
-        
+
         // System stats
-        $totalUsers = \App\Models\User::where('status', 'active')->count();
+        $totalUsers        = \App\Models\User::where('status', 'active')->count();
         $totalTransactions = Transaction::count();
-        $totalProducts = Product::count();
-        $totalCustomers = Customer::count();
-        
-        // Recent activities (bisa ditambahkan log system)
-        $recentUsers = \App\Models\User::with('role')->latest()->take(5)->get();
-        
-        // Database size (estimasi)
-        $dbSize = 0; // Bisa dihitung dari database
-        
+        $totalProducts     = Product::count();
+        $totalCustomers    = Customer::count();
+
+        // Recent activities (user terbaru)
+        $recentUsers = \App\Models\User::with('role')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Database size (bisa diisi kalau mau hitung)
+        $dbSize = 0;
+
         return view('dashboard.admin', compact(
             'totalUsers',
             'totalTransactions',

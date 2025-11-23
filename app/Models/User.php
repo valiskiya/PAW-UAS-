@@ -72,6 +72,6 @@ class User extends Authenticatable
 
     public function isAdminTI()
     {
-        return $this->role->name === 'admin_ti';
+        return $this->role->name === 'admin';
     }
 }
