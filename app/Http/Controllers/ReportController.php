@@ -141,4 +141,50 @@ class ReportController extends Controller
         
         return view('reports.laba-rugi', compact('month', 'year', 'revenue', 'cost', 'salaries', 'totalCost', 'profit'));
     }
+
+    public function bulanan(Request $request)
+    {
+        $year = $request->filled('year') ? (int) $request->year : now()->year;
+
+        $monthly = Transaction::select(
+                DB::raw("CAST(EXTRACT(MONTH FROM transaction_date) AS INTEGER) as month"),
+                DB::raw('SUM(total) as revenue'),
+                DB::raw('COUNT(*) as transactions_count'),
+                DB::raw('SUM(discount_amount) as total_discount')
+            )
+            ->whereYear('transaction_date', $year)
+            ->where('status', 'completed')
+            ->groupBy(DB::raw("CAST(EXTRACT(MONTH FROM transaction_date) AS INTEGER)"))
+            ->orderBy('month')
+            ->get()
+            ->keyBy('month');
+
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            if (isset($monthly[$m])) {
+                $months[$m] = $monthly[$m];
+            } else {
+                $months[$m] = (object) [
+                    'month' => $m,
+                    'revenue' => 0,
+                    'transactions_count' => 0,
+                    'total_discount' => 0,
+                ];
+            }
+        }
+
+        $totalRevenue = array_sum(array_map(function ($row) {
+            return (float) $row->revenue;
+        }, $months));
+
+        $totalTransactions = array_sum(array_map(function ($row) {
+            return (int) $row->transactions_count;
+        }, $months));
+
+        $totalDiscount = array_sum(array_map(function ($row) {
+            return (float) $row->total_discount;
+        }, $months));
+
+        return view('reports.bulanan', compact('months', 'year', 'totalRevenue', 'totalTransactions', 'totalDiscount'));
+    }
 }

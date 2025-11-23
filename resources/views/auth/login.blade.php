@@ -10,7 +10,7 @@
     <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">OneMart Retail</h1>
-            <p class="text-gray-600 mt-2">Retail Product Industri</p>
+            <p class="text-gray-600 mt-2">Retail Product Rumahan</p>
         </div>
         
         @if(session('success'))
@@ -49,7 +49,7 @@
             </button>
         </form>
         
-        <div class="mt-6 border-t pt-6">
+        <!--<div class="mt-6 border-t pt-6">
             <p class="text-sm text-gray-600 text-center">Demo Accounts:</p>
             <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
                 <div class="bg-gray-50 p-2 rounded">
@@ -65,7 +65,7 @@
                     <strong>Logistik:</strong> logistik / password123
                 </div>
             </div>
-        </div>
+        </div>-->
     </div>
 </body>
 </html>
