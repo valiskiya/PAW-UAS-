@@ -11,17 +11,13 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        // Kalau sudah login langsung ke dashboard (nanti di-redirect sesuai role)
-        if (Auth::check()) {
-            return redirect()->route('dashboard');
-        }
-
+        // TIDAK ada Auth::check() di sini.
+        // Selalu tampilkan halaman login.
         return view('auth.login');
     }
 
     public function login(Request $request)
     {
-        // 1. Validasi input
         $request->validate([
             'username' => 'required',
             'password' => 'required',
@@ -30,31 +26,25 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi',
         ]);
 
-        // 2. Credentials untuk Auth::attempt
-        //    + hanya user dengan status "active" yang bisa login
         $credentials = [
             'username' => $request->username,
             'password' => $request->password,
             'status'   => 'active',
         ];
 
-        // 3. Coba login
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
             $user = Auth::user();
 
-            // Arahkan ke route 'dashboard'
-            // DashboardController@index akan redirect ke dashboard role masing-masing
             return redirect()
                 ->route('dashboard')
                 ->with('success', 'Login berhasil! Selamat datang ' . $user->full_name);
         }
 
-        // 4. Kalau gagal
-        return back()->withErrors([
-            'username' => 'Username atau password salah.',
-        ])->withInput($request->only('username'));
+        return back()
+            ->withErrors(['username' => 'Username atau password salah.'])
+            ->withInput($request->only('username'));
     }
 
     public function logout(Request $request)
