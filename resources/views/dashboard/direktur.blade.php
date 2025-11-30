@@ -52,6 +52,36 @@
         </div>
     </div>
     
+    <!-- Quick Access Laporan -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Akses Cepat Laporan</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ route('direktur.laporan.laba-rugi') }}" 
+               class="flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-100 p-6 rounded-lg transition">
+                <i class="fas fa-chart-line text-3xl text-blue-600 mb-2"></i>
+                <span class="font-semibold text-gray-700">Laba Rugi Harian</span>
+            </a>
+            
+            <a href="{{ route('direktur.laporan.bulanan') }}" 
+               class="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-6 rounded-lg transition">
+                <i class="fas fa-calendar-alt text-3xl text-green-600 mb-2"></i>
+                <span class="font-semibold text-gray-700">Laporan Bulanan</span>
+            </a>
+            
+            <a href="{{ route('manajer.reports.sales') }}" 
+               class="flex flex-col items-center justify-center bg-purple-50 hover:bg-purple-100 p-6 rounded-lg transition">
+                <i class="fas fa-shopping-bag text-3xl text-purple-600 mb-2"></i>
+                <span class="font-semibold text-gray-700">Laporan Penjualan</span>
+            </a>
+            
+            <a href="{{ route('manajer.reports.stock') }}" 
+               class="flex flex-col items-center justify-center bg-orange-50 hover:bg-orange-100 p-6 rounded-lg transition">
+                <i class="fas fa-boxes text-3xl text-orange-600 mb-2"></i>
+                <span class="font-semibold text-gray-700">Laporan Stok</span>
+            </a>
+        </div>
+    </div>
+    
     <!-- Charts & Tables -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Sales Chart -->
@@ -86,6 +116,7 @@
             <div class="flex-1">
                 <h3 class="font-semibold text-yellow-800">Peringatan Stok Menipis</h3>
                 <p class="text-yellow-700 text-sm mt-1">{{ $lowStockProducts->count() }} produk memiliki stok di bawah minimum</p>
+                <a href="{{ route('manajer.reports.stock') }}" class="text-yellow-800 underline text-sm">Lihat Detail</a>
             </div>
         </div>
     </div>
