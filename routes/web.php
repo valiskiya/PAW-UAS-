@@ -15,13 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalaryPaymentController;
 use App\Http\Controllers\UserController;
 
-/*
-|--------------------------------------------------------------------------
-| ROUTE LOGIN (TANPA guest)
-|--------------------------------------------------------------------------
-| Selalu tampil halaman login di "/", tidak otomatis redirect ke dashboard,
-| meskipun user masih dalam keadaan login.
-*/
+
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 

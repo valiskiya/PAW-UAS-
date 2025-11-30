@@ -29,7 +29,7 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
                         <a href="{{ route('dashboard') }}" class="text-xl font-bold">
-                            <i class="fas fa-store mr-2"></i>Ritel ABC
+                            <i class="fas fa-store mr-2"></i>OneMart Retail
                         </a>
                     </div>
                     
