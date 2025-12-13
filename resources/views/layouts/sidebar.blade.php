@@ -1,11 +1,17 @@
 <nav class="space-y-1">
+    @php
+        $user = auth()->user();
+    @endphp
+
+    {{-- DASHBOARD UMUM --}}
     <a href="{{ route('dashboard') }}" 
        class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg clickable btn-hover {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-600 font-semibold' : '' }}">
         <i class="fas fa-home w-6"></i>
         <span>Dashboard</span>
     </a>
     
-    @if(auth()->user()->isDirektur())
+    {{-- DIREKTUR --}}
+    @if($user && $user->isDirektur())
         <div class="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase px-4">Laporan</div>
         
         <a href="{{ route('direktur.laporan.laba-rugi') }}" 
@@ -21,7 +27,8 @@
         </a>
     @endif
     
-    @if(auth()->user()->isManajerUnit())
+    {{-- MANAJER UNIT --}}
+    @if($user && $user->isManajerUnit())
         <div class="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase px-4">Inventori</div>
         
         <a href="{{ route('manajer.products.index') }}" 
@@ -101,21 +108,27 @@
         </a>
     @endif
     
-    @if(auth()->user()->isKasir())
+    {{-- KASIR --}}
+    @if($user && $user->isKasir())
+        <div class="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase px-4">Kasir</div>
+
+        {{-- Tombol POS utama --}}
         <a href="{{ route('kasir.pos') }}" 
-           class="flex items-center px-4 py-3 text-white bg-green-600 hover:bg-green-700 rounded-lg font-semibold clickable btn-hover shadow-lg">
+           class="flex items-center px-4 py-3 text-white bg-green-600 hover:bg-green-700 rounded-lg font-semibold clickable btn-hover shadow-lg {{ request()->routeIs('kasir.pos') ? 'ring-2 ring-offset-2 ring-green-400' : '' }}">
             <i class="fas fa-cash-register w-6"></i>
             <span>POS / Kasir</span>
         </a>
         
+        {{-- Riwayat transaksi kasir --}}
         <a href="{{ route('kasir.transactions.index') }}" 
-           class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg clickable btn-hover">
+           class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg clickable btn-hover {{ request()->routeIs('kasir.transactions.*') ? 'bg-blue-50 text-blue-600 font-semibold' : '' }}">
             <i class="fas fa-receipt w-6"></i>
             <span>Riwayat Transaksi</span>
         </a>
     @endif
     
-    @if(auth()->user()->isLogistik())
+    {{-- LOGISTIK --}}
+    @if($user && $user->isLogistik())
         <div class="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase px-4">Inventori</div>
         
         <a href="{{ route('logistik.products.index') }}" 
@@ -149,7 +162,8 @@
         </a>
     @endif
     
-    @if(auth()->user()->isAdminTI())
+    {{-- ADMIN TI --}}
+    @if($user && $user->isAdminTI())
         <div class="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase px-4">User Management</div>
         
         <a href="{{ route('admin.users.index') }}" 

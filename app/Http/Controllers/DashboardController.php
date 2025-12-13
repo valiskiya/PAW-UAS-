@@ -9,6 +9,8 @@ use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Attendance;
 use App\Models\PurchaseOrder;
+use App\Models\TransactionDetail;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -18,70 +20,119 @@ class DashboardController extends Controller
      * Redirect ke dashboard sesuai role user.
      */
     public function index()
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    if (! $user || ! $user->role) {
-        abort(403, 'Role pengguna tidak ditemukan');
+        if (! $user || ! $user->role) {
+            abort(403, 'Role pengguna tidak ditemukan');
+        }
+
+        $role = $user->role->name;
+
+        switch ($role) {
+            case 'direktur':
+                return redirect()->route('direktur.dashboard');
+
+            case 'manajer_unit':
+                return redirect()->route('manajer.dashboard');
+
+            case 'kasir':
+                return redirect()->route('kasir.dashboard');
+
+            case 'logistik':
+                return redirect()->route('logistik.dashboard');
+
+            case 'admin':
+                return redirect()->route('admin.dashboard');
+
+            default:
+                abort(403, 'Role "' . $role . '" tidak dikenali. Silakan hubungi Admin TI.');
+        }
     }
-
-    $role = $user->role->name;
-
-    switch ($role) {
-        case 'direktur':
-            return redirect()->route('direktur.dashboard');
-
-        case 'manajer_unit':
-            return redirect()->route('manajer.dashboard');
-
-        case 'kasir':
-            return redirect()->route('kasir.dashboard');
-
-        case 'logistik':
-            return redirect()->route('logistik.dashboard');
-
-        case 'admin':
-            return redirect()->route('admin.dashboard');
-
-        default:
-            // Daripada cari view yang tidak ada, lebih aman abort 403
-            abort(403, 'Role "' . $role . '" tidak dikenali. Silakan hubungi Admin TI.');
-    }
-}
-
 
     /**
      * Dashboard Direktur
      */
     public function direkturDashboard()
     {
-        $today     = Carbon::today();
-        $thisMonth = Carbon::now()->month;
-        $thisYear  = Carbon::now()->year;
+        $today        = Carbon::today();
+        $now          = Carbon::now();
+        $startOfWeek  = $now->copy()->startOfWeek();   // Senin
+        $startOfMonth = $now->copy()->startOfMonth();
+        $thisMonth    = (int) $now->format('m');
+        $thisYear     = (int) $now->format('Y');
 
-        // KPI Data
+        /**
+         * 1. RINGKASAN KINERJA TOKO
+         */
+        // Omzet hari / minggu / bulan
         $totalRevenueToday = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->sum('total');
 
-        $totalRevenueMonth = Transaction::whereMonth('transaction_date', $thisMonth)
-            ->whereYear('transaction_date', $thisYear)
+        $totalRevenueWeek = Transaction::whereBetween('transaction_date', [$startOfWeek, $today])
             ->where('status', 'completed')
             ->sum('total');
 
+        $totalRevenueMonth = Transaction::whereBetween('transaction_date', [$startOfMonth, $today])
+            ->where('status', 'completed')
+            ->sum('total');
+
+        // Jumlah transaksi
         $totalTransactionsToday = Transaction::whereDate('transaction_date', $today)
             ->where('status', 'completed')
             ->count();
 
-        $totalTransactionsMonth = Transaction::whereMonth('transaction_date', $thisMonth)
-            ->whereYear('transaction_date', $thisYear)
+        $totalTransactionsMonth = Transaction::whereBetween('transaction_date', [$startOfMonth, $today])
             ->where('status', 'completed')
             ->count();
 
-        // Grafik penjualan 7 hari terakhir
+        // Laba kotor (omzet - HPP)
+        $monthDetails = TransactionDetail::with(['product', 'transaction'])
+            ->whereHas('transaction', function ($q) use ($startOfMonth, $today) {
+                $q->whereBetween('transaction_date', [$startOfMonth, $today])
+                  ->where('status', 'completed');
+            })
+            ->get();
+
+        $cogsMonth = $monthDetails->sum(function ($detail) {
+            if (! $detail->product) {
+                return 0;
+            }
+
+            $product    = $detail->product;
+            $conversion = $product->conversion_factor ?: 1;
+
+            // Asumsi purchase_price = harga per unit kecil
+            $quantitySmall = $detail->unit === 'large'
+                ? $detail->quantity * $conversion
+                : $detail->quantity;
+
+            return $quantitySmall * (float) $product->purchase_price;
+        });
+
+        $grossProfitMonth = $totalRevenueMonth - $cogsMonth;
+
+        // Biaya tenaga kerja bulan ini
+        // NOTE: sementara diset 0 supaya tidak error kolom (silakan sesuaikan nanti dengan struktur tabel salary_payments-mu)
+        $labourCostMonth = 0;
+
+        // Laba bersih sederhana
+        $netProfitMonth = $grossProfitMonth - $labourCostMonth;
+
+        // Target vs realisasi omzet bulanan
+        $targetRevenueMonth = (float) config('onemart.target_monthly_revenue', 50000000); // default 50 jt
+        if ($targetRevenueMonth > 0) {
+            $targetAchievementPercent = round(($totalRevenueMonth / $targetRevenueMonth) * 100, 1);
+        } else {
+            // supaya selalu terdefinisi
+            $targetAchievementPercent = 0;
+        }
+
+        // Grafik omzet 7 hari terakhir
         $salesChart = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date  = Carbon::today()->subDays($i);
+            $date  = $today->copy()->subDays($i);
             $sales = Transaction::whereDate('transaction_date', $date)
                 ->where('status', 'completed')
                 ->sum('total');
@@ -92,7 +143,136 @@ class DashboardController extends Controller
             ];
         }
 
-        // Top products bulan ini
+        /**
+         * 2. STOK & INVENTORI
+         */
+        $totalActiveProducts = Product::where('status', 'active')->count();
+
+        // Produk stok menipis
+        $lowStockProducts = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
+            ->where('status', 'active')
+            ->get();
+        $lowStockCount = $lowStockProducts->count();
+
+        // Stok mati: 60 hari tidak terjual
+        $cutoffDead = $today->copy()->subDays(60);
+
+        $deadStockCount = Product::where('status', 'active')
+            ->whereDoesntHave('transactionDetails.transaction', function ($q) use ($cutoffDead) {
+                $q->where('status', 'completed')
+                  ->whereDate('transaction_date', '>=', $cutoffDead);
+            })
+            ->count();
+
+        // Nilai persediaan (stok * purchase_price per unit kecil)
+        $inventoryValue = Product::where('status', 'active')->get()->sum(function ($product) {
+            $totalSmall = ($product->stock_large * $product->conversion_factor) + $product->stock_small;
+            return $totalSmall * (float) $product->purchase_price;
+        });
+
+        // Skor kesehatan stok
+        $healthyProducts = 0;
+        if ($totalActiveProducts > 0) {
+            $healthyProducts = Product::where('status', 'active')
+                ->whereRaw('(stock_large * conversion_factor + stock_small) >= min_stock')
+                ->whereHas('transactionDetails.transaction', function ($q) use ($cutoffDead) {
+                    $q->where('status', 'completed')
+                      ->whereDate('transaction_date', '>=', $cutoffDead);
+                })
+                ->count();
+        }
+
+        $inventoryHealthPercent = $totalActiveProducts > 0
+            ? round(($healthyProducts / $totalActiveProducts) * 100, 1)
+            : 0;
+
+        /**
+         * 3. PELANGGAN & DISKON
+         */
+        $totalCustomers = Customer::where('status', 'active')->count();
+
+        $memberTypes     = ['member', 'wholesale_low', 'wholesale_high'];
+        $totalMembers    = Customer::where('status', 'active')->whereIn('type', $memberTypes)->count();
+        $totalNonMembers = max($totalCustomers - $totalMembers, 0);
+
+        $memberSharePercent    = $totalCustomers > 0 ? round(($totalMembers / $totalCustomers) * 100, 1) : 0;
+        $nonMemberSharePercent = $totalCustomers > 0 ? round(($totalNonMembers / $totalCustomers) * 100, 1) : 0;
+
+        $wholesaleLowCount = Customer::where('status', 'active')
+            ->where('type', 'wholesale_low')
+            ->count();
+
+        $wholesaleHighCount = Customer::where('status', 'active')
+            ->where('type', 'wholesale_high')
+            ->count();
+
+        // Pertumbuhan anggota (bulan ini vs bulan lalu)
+        $lastMonth = $now->copy()->subMonthNoOverflow();
+
+        $newMembersThisMonth = Customer::whereIn('type', $memberTypes)
+            ->whereMonth('created_at', $thisMonth)
+            ->whereYear('created_at', $thisYear)
+            ->count();
+
+        $newMembersLastMonth = Customer::whereIn('type', $memberTypes)
+            ->whereMonth('created_at', $lastMonth->month)
+            ->whereYear('created_at', $lastMonth->year)
+            ->count();
+
+        $newWholesaleThisMonth = Customer::whereIn('type', ['wholesale_low', 'wholesale_high'])
+            ->whereMonth('created_at', $thisMonth)
+            ->whereYear('created_at', $thisYear)
+            ->count();
+
+        // Efektivitas program diskon (kontribusi omzet per tipe customer)
+        $baseQueryByType = Transaction::where('status', 'completed')
+            ->whereBetween('transaction_date', [$startOfMonth, $today]);
+
+        $revenueRetailMonth = (clone $baseQueryByType)
+            ->where(function ($q) {
+                $q->whereNull('customer_id')
+                  ->orWhereDoesntHave('customer')
+                  ->orWhereHas('customer', function ($qc) {
+                      $qc->where('type', 'non_member');
+                  });
+            })
+            ->sum('total');
+
+        $revenueMemberMonth = (clone $baseQueryByType)
+            ->whereHas('customer', function ($q) {
+                $q->where('type', 'member');
+            })
+            ->sum('total');
+
+        $revenueWholesaleLowMonth = (clone $baseQueryByType)
+            ->whereHas('customer', function ($q) {
+                $q->where('type', 'wholesale_low');
+            })
+            ->sum('total');
+
+        $revenueWholesaleHighMonth = (clone $baseQueryByType)
+            ->whereHas('customer', function ($q) {
+                $q->where('type', 'wholesale_high');
+            })
+            ->sum('total');
+
+        $totalRevenueByType = $revenueRetailMonth + $revenueMemberMonth
+            + $revenueWholesaleLowMonth + $revenueWholesaleHighMonth;
+
+        /**
+         * 4. SDM
+         */
+        $totalEmployees = Employee::where('status', 'active')->count();
+
+        $attendanceSummaryByStatus = Attendance::select('status', DB::raw('count(*) as total'))
+            ->whereMonth('attendance_date', $thisMonth)
+            ->whereYear('attendance_date', $thisYear)
+            ->groupBy('status')
+            ->get();
+
+        /**
+         * 5. Top Produk Bulan Ini
+         */
         $topProducts = Product::withCount(['transactionDetails' => function ($query) use ($thisMonth, $thisYear) {
                 $query->whereHas('transaction', function ($q) use ($thisMonth, $thisYear) {
                     $q->whereMonth('transaction_date', $thisMonth)
@@ -104,20 +284,46 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Produk stok menipis
-        $lowStockProducts = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
-            ->where('status', 'active')
-            ->take(10)
-            ->get();
-
         return view('dashboard.direktur', compact(
+            // Ringkasan kinerja toko
             'totalRevenueToday',
+            'totalRevenueWeek',
             'totalRevenueMonth',
             'totalTransactionsToday',
             'totalTransactionsMonth',
+            'grossProfitMonth',
+            'netProfitMonth',
+            'labourCostMonth',
+            'targetRevenueMonth',
+            'targetAchievementPercent',
             'salesChart',
-            'topProducts',
-            'lowStockProducts'
+            // Stok & inventori
+            'inventoryValue',
+            'lowStockProducts',
+            'lowStockCount',
+            'deadStockCount',
+            'inventoryHealthPercent',
+            // Pelanggan & diskon
+            'totalCustomers',
+            'totalMembers',
+            'totalNonMembers',
+            'memberSharePercent',
+            'nonMemberSharePercent',
+            'wholesaleLowCount',
+            'wholesaleHighCount',
+            'newMembersThisMonth',
+            'newMembersLastMonth',
+            'newWholesaleThisMonth',
+            'revenueRetailMonth',
+            'revenueMemberMonth',
+            'revenueWholesaleLowMonth',
+            'revenueWholesaleHighMonth',
+            'totalRevenueByType',
+            // SDM
+            'totalEmployees',
+            'attendanceSummaryByStatus',
+            // Produk
+            'topProducts'
         ));
     }
 
@@ -192,7 +398,6 @@ class DashboardController extends Controller
         $today = Carbon::today();
         $user  = auth()->user();
 
-        // Transaksi hari ini oleh kasir ini
         $todayTransactions = Transaction::where('cashier_id', $user->id)
             ->whereDate('transaction_date', $today)
             ->where('status', 'completed')
@@ -203,14 +408,12 @@ class DashboardController extends Controller
             ->where('status', 'completed')
             ->sum('total');
 
-        // Recent transactions
         $recentTransactions = Transaction::with(['customer'])
             ->where('cashier_id', $user->id)
             ->latest()
             ->take(10)
             ->get();
 
-        // Total member
         $totalMembers = Customer::where('type', '!=', 'non_member')
             ->where('status', 'active')
             ->count();
@@ -230,23 +433,19 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
 
-        // Pending POs
         $pendingPOs = PurchaseOrder::with(['supplier', 'product'])
             ->where('status', 'pending')
             ->get();
 
-        // Low stock products
         $lowStockProducts = Product::whereRaw('(stock_large * conversion_factor + stock_small) < min_stock')
             ->where('status', 'active')
             ->get();
 
-        // Today's received POs
         $todayReceived = PurchaseOrder::with(['supplier', 'product'])
             ->whereDate('received_date', $today)
             ->where('status', 'received')
             ->get();
 
-        // Stock summary
         $totalProducts = Product::where('status', 'active')->count();
         $criticalStock = Product::whereRaw('(stock_large * conversion_factor + stock_small) < (min_stock * 0.5)')
             ->where('status', 'active')
@@ -266,21 +465,16 @@ class DashboardController extends Controller
      */
     public function adminDashboard()
     {
-        $today = Carbon::today();
-
-        // System stats
         $totalUsers        = \App\Models\User::where('status', 'active')->count();
         $totalTransactions = Transaction::count();
         $totalProducts     = Product::count();
         $totalCustomers    = Customer::count();
 
-        // Recent activities (user terbaru)
         $recentUsers = \App\Models\User::with('role')
             ->latest()
             ->take(5)
             ->get();
 
-        // Database size (bisa diisi kalau mau hitung)
         $dbSize = 0;
 
         return view('dashboard.admin', compact(

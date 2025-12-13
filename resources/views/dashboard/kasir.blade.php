@@ -78,7 +78,9 @@
                         <td class="px-4 py-3 font-semibold">{{ $trx->transaction_code }}</td>
                         <td class="px-4 py-3">{{ $trx->customer->name ?? 'Umum' }}</td>
                         <td class="px-4 py-3 text-center text-sm">{{ $trx->transaction_time }}</td>
-                        <td class="px-4 py-3 text-right font-bold text-green-600">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-right font-bold text-green-600">
+                            Rp {{ number_format($trx->total, 0, ',', '.') }}
+                        </td>
                         <td class="px-4 py-3 text-center">
                             <a href="{{ route('kasir.transactions.show', $trx->id) }}" 
                                class="text-blue-600 hover:text-blue-800 mr-2">
@@ -92,7 +94,9 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">Belum ada transaksi hari ini</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                            Belum ada transaksi hari ini
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
