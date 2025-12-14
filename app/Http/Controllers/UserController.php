@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -42,24 +45,24 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'role_id' => 'required|exists:roles,id',
-            'username' => 'required|unique:users,username',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'role_id'   => 'required|exists:roles,id',
+            'username'  => 'required|unique:users,username',
+            'email'     => 'required|email|unique:users,email',
+            'password'  => 'required|min:6|confirmed',
             'full_name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
+            'phone'     => 'nullable|string|max:20',
+            'address'   => 'nullable|string',
         ]);
         
         User::create([
-            'role_id' => $request->role_id,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'role_id'   => $request->role_id,
+            'username'  => $request->username,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
             'full_name' => $request->full_name,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'status' => 'active',
+            'phone'     => $request->phone,
+            'address'   => $request->address,
+            'status'    => 'active',
         ]);
         
         return redirect()->route('admin.users.index')
@@ -75,13 +78,13 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'role_id' => 'required|exists:roles,id',
-            'username' => 'required|unique:users,username,' . $user->id,
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role_id'   => 'required|exists:roles,id',
+            'username'  => 'required|unique:users,username,' . $user->id,
+            'email'     => 'required|email|unique:users,email,' . $user->id,
             'full_name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
+            'phone'     => 'nullable|string|max:20',
+            'address'   => 'nullable|string',
+            'status'    => 'required|in:active,inactive',
         ]);
         
         $user->update($request->except('password'));
@@ -114,14 +117,20 @@ class UserController extends Controller
     
     public function settings()
     {
-        return view('admin.settings');
+        return view('admin.setting');
     }
-    
+
+    /**
+     * Halaman daftar backup.
+     * Route: GET /admin/backup  (admin.backup)
+     */
     public function backup()
     {
         $backups = [];
+
         if (Storage::disk('local')->exists('backups')) {
             $files = Storage::disk('local')->files('backups');
+
             foreach ($files as $file) {
                 $backups[] = [
                     'name' => basename($file),
@@ -129,23 +138,82 @@ class UserController extends Controller
                     'date' => Storage::disk('local')->lastModified($file),
                 ];
             }
+
+            // urutkan terbaru di atas
+            usort($backups, function ($a, $b) {
+                return $b['date'] <=> $a['date'];
+            });
         }
         
         return view('admin.backup', compact('backups'));
     }
+
+    /**
+     * Membuat backup baru (sederhana: summary data).
+     * Route: POST /admin/backup/create  (admin.backup.create)
+     */
+    public function createBackup()
+    {
+        // Pastikan folder backups ada
+        if (!Storage::disk('local')->exists('backups')) {
+            Storage::disk('local')->makeDirectory('backups');
+        }
+
+        // Nama file: backup_YYYYMMDD_HHMMSS.json
+        $fileName = 'backup_' . now()->format('Ymd_His') . '.json';
+        $path     = 'backups/' . $fileName;
+
+        // Isi backup: ringkasan data (cukup untuk tugas)
+        $data = [
+            'generated_at' => now()->toDateTimeString(),
+            'summary'      => [
+                'users'        => User::count(),
+                'products'     => Product::count(),
+                'transactions' => Transaction::count(),
+                'customers'    => Customer::count(),
+            ],
+        ];
+
+        Storage::disk('local')->put($path, json_encode($data, JSON_PRETTY_PRINT));
+
+        return redirect()
+            ->route('admin.backup')
+            ->with('success', 'Backup berhasil dibuat.');
+    }
+
+    /**
+     * Download file backup.
+     * Route: GET /admin/backup/download/{file}  (admin.backup.download)
+     */
+    public function downloadBackup(string $file)
+    {
+        $path = 'backups/' . $file;
+
+        if (!Storage::disk('local')->exists($path)) {
+            abort(404, 'File backup tidak ditemukan.');
+        }
+
+        $fullPath = storage_path('app/' . $path);
+
+        return response()->download($fullPath);
+    }
     
     public function logs()
     {
+        // Saat ini route logs sudah diarahkan ke ActivityLogController@index,
+        // method ini dibiarkan saja untuk jaga-jaga jika masih ada yang memanggil.
         return view('admin.logs');
     }
     
     public function monitoring()
     {
         $stats = [
-            'users' => User::count(),
-            'products' => \App\Models\Product::count(),
+            'users'              => User::count(),
+            'products'           => \App\Models\Product::count(),
             'transactions_today' => \App\Models\Transaction::whereDate('transaction_date', today())->count(),
-            'revenue_today' => \App\Models\Transaction::whereDate('transaction_date', today())->where('status', 'completed')->sum('total'),
+            'revenue_today'      => \App\Models\Transaction::whereDate('transaction_date', today())
+                                        ->where('status', 'completed')
+                                        ->sum('total'),
         ];
         
         return view('admin.monitoring', compact('stats'));

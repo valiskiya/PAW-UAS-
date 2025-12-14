@@ -14,8 +14,13 @@ use App\Http\Controllers\StockCardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalaryPaymentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ActivityLogController;
 
-
+/*
+|--------------------------------------------------------------------------
+| AUTH (HALAMAN LOGIN)
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
@@ -47,12 +52,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('dashboard', [DashboardController::class, 'direkturDashboard'])->name('dashboard');
 
+        // Laporan keuangan & bulanan
         Route::get('laporan/laba-rugi', [ReportController::class, 'labaRugi'])->name('laporan.laba-rugi');
         Route::get('laporan/bulanan', [ReportController::class, 'bulanan'])->name('laporan.bulanan');
+
+        // (opsional) laporan lain kalau nanti dipakai
         Route::get('laporan/pelanggan', [ReportController::class, 'pelanggan'])->name('laporan.pelanggan');
         Route::get('laporan/efisiensi', [ReportController::class, 'efisiensi'])->name('laporan.efisiensi');
-        Route::get('laporan/laba-rugi', [ReportController::class, 'labaRugi'])->name('laporan.laba-rugi');
-        Route::get('laporan/bulanan', [ReportController::class, 'bulanan'])->name('laporan.bulanan');
     });
 
     /*
@@ -117,12 +123,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pos', [TransactionController::class, 'pos'])->name('pos');
         Route::post('pos/create', [TransactionController::class, 'store'])->name('pos.store');
+
         Route::get('transactions', [TransactionController::class, 'kasirIndex'])->name('transactions.index');
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         Route::get('transactions/{transaction}/print', [TransactionController::class, 'print'])->name('transactions.print');
 
-        Route::get('customers/search', [CustomerController::class, 'search'])->name('customers.search');
-        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        // kalau mau search pelanggan dari kasir, bisa pakai endpoint API (lihat group api di bawah)
     });
 
     /*
@@ -159,7 +165,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN
+    | ADMIN TI
     |--------------------------------------------------------------------------
     */
     Route::middleware(['role:admin'])
@@ -180,7 +186,9 @@ Route::middleware('auth')->group(function () {
         Route::post('backup/create', [UserController::class, 'createBackup'])->name('backup.create');
         Route::get('backup/download/{file}', [UserController::class, 'downloadBackup'])->name('backup.download');
 
-        Route::get('logs', [UserController::class, 'logs'])->name('logs');
+        // LOG AKTIVITAS – perhatikan: path "logs" saja, nama "admin.logs"
+        Route::get('logs', [ActivityLogController::class, 'index'])->name('logs');
+
         Route::get('monitoring', [UserController::class, 'monitoring'])->name('monitoring');
     });
 });
